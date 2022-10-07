@@ -31,11 +31,12 @@ func WithDelay(dur time.Duration) option {
 	}
 }
 
-func NewKlikBca(userName, password string, opts ...option) *klikBca {
+func NewKlikBca(userName, password, ipAddress string, opts ...option) *klikBca {
 
 	klikBca := &klikBca{
-		username: userName,
-		password: password,
+		username:  userName,
+		password:  password,
+		ipAddress: ipAddress,
 	}
 
 	// Apply options
