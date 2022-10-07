@@ -20,33 +20,53 @@ func (klikBca klikBca) GetTodaySettlement() ([]settlementDetail, error) {
 	var err error
 	settlement := []settlementDetail{}
 
-	klikBca.colly.OnHTML("#pagebody > span > table:last-child > tbody", func(e *colly.HTMLElement) {
+	/*
+	   For #pageBody
+	      Need to start from here
+
+	   For table:last-child
+	      The span only has 2 childs which are both tables. The first table is for the heading that
+	      renders "INFORMASI REKENING - MUTASI REKENING". The second table is the account statement that we
+	      need to scrape.
+
+	   For tr:nth-child(2)
+	     Need to skip the first row, because the first row is a header
+	     Need to skip the last row, because the last row is the "Saldo awal" dan "Saldo akhir", which we dont need
+
+	   For td:nth-child(2)
+	       Inside the table row there are 3 table datas. The first and the third table data does not contain anything. What we are interested in is only inside table data number 2.
+
+	   For table
+	       Inside td:nth-child(2), there is another table. This table is what we are going to scrape.
+
+	   For tbody
+	       Inside table there is tbody. Should be self explanatory.
+
+	   For tr[bgcolor]
+	       Inisde <tbody> there will be multiple <tr>. The first <tr> does not have bgcolor class styling, which should be the heading that stores "TGL" and "KETERANGAN". The rest of the <tr> has the class bgcolor which provides the settlement data that we are going to scrape.
+
+	   For td:not([valign])
+	       For each <tr[bgcolor] there will be 3 table datas. The first one is to store the date, we are not interested in this data. The second one is the actual settlement information along with the amount. The third one I don't know what. tl;dr we are only interested in the second one, and the second one does not have [valign] class.
+
+
+	*/
+	klikBca.colly.OnHTML("#pagebody > span > table:last-child > tbody > tr:nth-child(2) > td:nth-child(2) > table > tbody > tr[bgcolor] > td:not([valign])", func(e *colly.HTMLElement) {
 
 		if strings.Contains(string(e.Response.Body), "TIDAK ADA TRANSAKSI") {
 			// This should return an empty array
 			return
 		}
 
-		// Need to skip the first row, because the first row is a header
-		// Need to skip the last row, because the last row is the "Saldo awal" dan "Saldo akhir", which we dont need
-		tableRow := e.DOM.Children().Slice(1, e.DOM.Children().Length()-1)
-
-		// Need to skip first and last row, because it does not contain anything
-		tableData := tableRow.Children().Slice(1, tableRow.Children().Length()-1)
+		// Need to retain the HTML codes, because the data is separated by <br>s which we can extract easily.
+		// If we only extract by Text(), we cannot extract the data
+		data, err := goquery.OuterHtml(e.DOM)
+		if err != nil {
+			// Just going to panic, because to return this error is kinda hard
+			panic(err)
+		}
 
 		cleanData := []string{}
-		tableData.Find("table > tbody > tr[bgcolor] > td:not([valign])").Each(func(_ int, s *goquery.Selection) {
-
-			// Need to retain the HTML codes, because the data is separated by <br>s which we can extract easily.
-			// If we only extract by Text(), we cannot extract the data
-			data, err := goquery.OuterHtml(s)
-			if err != nil {
-				// Just going to panic, because to return this error is kinda hard
-				panic(err)
-			}
-
-			cleanData = append(cleanData, strings.Split(data, "\n")...)
-		})
+		cleanData = append(cleanData, strings.Split(data, "\n")...)
 
 		// Start processing data
 		for _, data := range cleanData {
