@@ -2,6 +2,7 @@ package klikbca
 
 import (
 	"crypto/tls"
+	"errors"
 	"net/http"
 	"time"
 
@@ -45,6 +46,11 @@ func NewKlikBca(userName, password, ipAddress string, opts ...option) *klikBca {
 	}
 
 	c := colly.NewCollector()
+
+	// To not follow redirects and return error
+	c.RedirectHandler = func(req *http.Request, via []*http.Request) error {
+		return errors.New("got 302 temporary error, please retry sometimes later")
+	}
 	c.UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36"
 
 	// Set delay

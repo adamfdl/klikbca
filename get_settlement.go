@@ -11,8 +11,9 @@ import (
 )
 
 type settlementDetail struct {
-	Description string `json:"description"`
-	Amount      string `json:"amount"`
+	Description string    `json:"description"`
+	Amount      string    `json:"amount"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 
 func (klikBca klikBca) GetTodaySettlement() ([]settlementDetail, error) {
@@ -84,9 +85,13 @@ func (klikBca klikBca) GetTodaySettlement() ([]settlementDetail, error) {
 			settlement = append(settlement, settlementDetail{
 				Description: description,
 				Amount:      amount,
+				CreatedAt:   time.Now(),
 			})
 		}
 
+	})
+
+	klikBca.colly.OnResponse(func(c *colly.Response) {
 	})
 
 	// Login
