@@ -21,9 +21,6 @@ func (klikBca klikBca) GetTodaySettlement() ([]settlementDetail, error) {
 	settlement := []settlementDetail{}
 
 	/*
-	   For #pageBody
-	      Need to start from here
-
 	   For table:last-child
 	      The span only has 2 childs which are both tables. The first table is for the heading that
 	      renders "INFORMASI REKENING - MUTASI REKENING". The second table is the account statement that we
@@ -55,7 +52,7 @@ func (klikBca klikBca) GetTodaySettlement() ([]settlementDetail, error) {
 
 
 	*/
-	klikBca.colly.OnHTML("#pagebody > span > table:last-child > tbody > tr:nth-child(2) > td:nth-child(2) > table > tbody > tr[bgcolor] > td:not([valign])", func(e *colly.HTMLElement) {
+	klikBca.colly.OnHTML(`span[class="blue"] > table:last-child > tbody > tr:nth-child(2) > td:nth-child(2) > table > tbody > tr[bgcolor] > td:not([valign])`, func(e *colly.HTMLElement) {
 
 		if strings.Contains(string(e.Response.Body), "TIDAK ADA TRANSAKSI") {
 			// This should return an empty array
@@ -64,34 +61,25 @@ func (klikBca klikBca) GetTodaySettlement() ([]settlementDetail, error) {
 
 		// Need to retain the HTML codes, because the data is separated by <br>s which we can extract easily.
 		// If we only extract by Text(), we cannot extract the data
-		data, err := goquery.OuterHtml(e.DOM)
+		outerHTML, outerHTLMParseErr := goquery.OuterHtml(e.DOM)
 		if err != nil {
-			// Just going to panic, because to return this error is kinda hard
-			panic(err)
+			err = outerHTLMParseErr
+			return
 		}
 
-		cleanData := []string{}
-		cleanData = append(cleanData, strings.Split(data, "\n")...)
-
 		// Start processing data
-		for _, data := range cleanData {
-
+		for _, data := range strings.Split(outerHTML, "\n") {
 			// First we sanitize the data by removing </d>
 			data = strings.Replace(data, "<td>", "", -1)
-
 			// Second we sanitize the data by remomving </td>
 			data = strings.Replace(data, "</td>", "", -1)
-
 			// Then we split the data with <br/> so we can separate the amont data
 			splittedData := strings.Split(data, "<br/>")
-
 			// We can rejoin the splitted data to build a description of the transaction
 			// Also not forgetting to remove the last item of the array, because it contains the amount
 			description := strings.Join(splittedData[0:len(splittedData)-1], " ")
-
 			// The amount should always be in the last item of the array
 			amount := splittedData[len(splittedData)-1]
-
 			// Construct a settlement
 			settlement = append(settlement, settlementDetail{
 				Description: description,
