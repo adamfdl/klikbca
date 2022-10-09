@@ -64,8 +64,7 @@ func (klikBca klikBca) GetTodaySettlement() ([]settlementDetail, error) {
 		}
 
 		// Start processing data
-		settlement = processSettlementFromHTML(outerHTML)
-
+		settlement = append(settlement, processSettlementFromHTML(outerHTML)...)
 	})
 
 	// Login
@@ -147,7 +146,7 @@ func (klikBca klikBca) GetTodaySettlement() ([]settlementDetail, error) {
 		return nil, err
 	}
 
-	klikBca.colly.Visit("https://m.klikbca.com/authentication.do")
+	klikBca.colly.Visit("http://localhost:3004")
 
 	return settlement, err
 }
