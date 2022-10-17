@@ -3,7 +3,10 @@ package klikbca
 import (
 	"crypto/md5"
 	"fmt"
+	"net/http"
+	"net/url"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly"
@@ -87,85 +90,85 @@ func (klikBca klikBca) GetTodaySettlement() ([]settlementDetail, error) {
 	})
 
 	// Login
-	//form := url.Values{}
-	//form.Add("value(user_id)", klikBca.username)
-	//form.Add("value(pswd)", klikBca.password)
-	//form.Add("value(Submit)", "LOGIN")
-	//form.Add("value(actions)", "login")
-	//form.Add("value(user_ip)", klikBca.ipAddress)
-	//form.Add("user_ip", klikBca.ipAddress)
-	//form.Add("value(mobile)", "true")
-	//form.Add("mobile", "true")
+	form := url.Values{}
+	form.Add("value(user_id)", klikBca.username)
+	form.Add("value(pswd)", klikBca.password)
+	form.Add("value(Submit)", "LOGIN")
+	form.Add("value(actions)", "login")
+	form.Add("value(user_ip)", klikBca.ipAddress)
+	form.Add("user_ip", klikBca.ipAddress)
+	form.Add("value(mobile)", "true")
+	form.Add("mobile", "true")
 
-	//err = klikBca.colly.Request(
-	//	"POST",
-	//	"https://m.klikbca.com/authentication.do",
-	//	strings.NewReader(form.Encode()),
-	//	nil,
-	//	http.Header{
-	//		"Content-Type": []string{"application/x-www-form-urlencoded"},
-	//	},
-	//)
-	//if err != nil {
-	//	return nil, err
-	//}
+	err = klikBca.colly.Request(
+		"POST",
+		"https://m.klikbca.com/authentication.do",
+		strings.NewReader(form.Encode()),
+		nil,
+		http.Header{
+			"Content-Type": []string{"application/x-www-form-urlencoded"},
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
 
-	//// Go to account information page. This is the place where you can go to the "Balance", "Settlement" etc page
-	//err = klikBca.colly.Request(
-	//	"POST",
-	//	"https://m.klikbca.com/accountstmt.do?value(actions)=menu",
-	//	nil,
-	//	nil,
-	//	http.Header{},
-	//)
-	//if err != nil {
-	//	return nil, err
-	//}
+	// Go to account information page. This is the place where you can go to the "Balance", "Settlement" etc page
+	err = klikBca.colly.Request(
+		"POST",
+		"https://m.klikbca.com/accountstmt.do?value(actions)=menu",
+		nil,
+		nil,
+		http.Header{},
+	)
+	if err != nil {
+		return nil, err
+	}
 
-	//// Go to account statement page
-	//err = klikBca.colly.Request(
-	//	"POST",
-	//	"https://m.klikbca.com/accountstmt.do?value(actions)=acct_stmt",
-	//	nil,
-	//	nil,
-	//	http.Header{},
-	//)
-	//if err != nil {
-	//	return nil, err
-	//}
+	// Go to account statement page
+	err = klikBca.colly.Request(
+		"POST",
+		"https://m.klikbca.com/accountstmt.do?value(actions)=acct_stmt",
+		nil,
+		nil,
+		http.Header{},
+	)
+	if err != nil {
+		return nil, err
+	}
 
-	//// Get formatted time
-	//now := time.Now()
-	//date := now.Format("02")
-	//month := now.Format("01")
-	//year := now.Format("2006")
+	// Get formatted time
+	now := time.Now()
+	date := now.Format("02")
+	month := now.Format("01")
+	year := now.Format("2006")
 
-	//form = url.Values{}
-	//form.Add("value(D1)", "0")
-	//form.Add("value(r1)", "1")
-	//form.Add("value(startDt)", date)
-	//form.Add("value(startMt)", month)
-	//form.Add("value(startYr)", year)
-	//form.Add("value(endDt)", date)
-	//form.Add("value(endMt)", month)
-	//form.Add("value(endYr)", year)
-	//form.Add("value(fDt)", "")
-	//form.Add("value(tDt)", "")
-	//form.Add("value(submit1)", "View Account Statement")
+	form = url.Values{}
+	form.Add("value(D1)", "0")
+	form.Add("value(r1)", "1")
+	form.Add("value(startDt)", date)
+	form.Add("value(startMt)", month)
+	form.Add("value(startYr)", year)
+	form.Add("value(endDt)", date)
+	form.Add("value(endMt)", month)
+	form.Add("value(endYr)", year)
+	form.Add("value(fDt)", "")
+	form.Add("value(tDt)", "")
+	form.Add("value(submit1)", "View Account Statement")
 
-	//// Get the settlement for today
-	//err = klikBca.colly.Request(
-	//	"POST",
-	//	"https://m.klikbca.com/accountstmt.do?value(actions)=acctstmtview",
-	//	strings.NewReader(form.Encode()),
-	//	nil,
-	//	http.Header{},
-	//)
-	//if err != nil {
-	//	return nil, err
-	//}
+	// Get the settlement for today
+	err = klikBca.colly.Request(
+		"POST",
+		"https://m.klikbca.com/accountstmt.do?value(actions)=acctstmtview",
+		strings.NewReader(form.Encode()),
+		nil,
+		http.Header{},
+	)
+	if err != nil {
+		return nil, err
+	}
 
-	klikBca.colly.Visit("http://localhost:3004")
+	klikBca.colly.Visit("https://m.klikbca.com/authentication.do")
 
 	return settlement, err
 }
