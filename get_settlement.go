@@ -162,7 +162,7 @@ func (klikBca klikBca) GetTodaySettlement() ([]settlementDetail, error) {
 		return nil, err
 	}
 
-	klikBca.colly.Visit("https://m.ibank.klikbca.com/authentication.do")
+	klikBca.colly.Visit("https://m.klikbca.com/authentication.do")
 
 	return settlement, err
 }
