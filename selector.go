@@ -31,4 +31,6 @@ package klikbca
        tl;dr we are only interested in the second one, and the second one does not have [valign] class.
 
 */
-const dailySettlementSelector = `span[class="blue"] > table:last-child > tbody > tr:nth-child(2) > td:nth-child(2) > table > tbody > tr[bgcolor] > td:not([valign])`
+//const dailySettlementSelector = `span[class="blue"] > table:last-child > tbody > tr:nth-child(2) > td:nth-child(2) > table > tbody > tr[bgcolor] > td:not([valign])`
+
+const dailySettlementSelector = `span[class="blue"] > table:last-child > tbody > tr:nth-child(2) > td:nth-child(2) > table > tbody > tr[bgcolor]`

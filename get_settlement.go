@@ -1,6 +1,7 @@
 package klikbca
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -11,12 +12,23 @@ import (
 )
 
 type settlementDetail struct {
+	Date        string `json:"date"`
+	Type        string `json:"type"`
 	Description string `json:"description"`
 	Amount      string `json:"amount"`
-	CreatedAt   string `json:"created_at"`
 }
 
-func processSettlementFromHTML(outerHTML string) []settlementDetail {
+func parseDate(date string) string {
+
+	if date == "PEND" {
+		return date
+	}
+
+	// If not "PEND" return with format YYYY/DD/MM
+	return fmt.Sprintf("%s/%s", time.Now().Format("2006"), date)
+}
+
+func processSettlement(date, bookKeep, outerHTML string) []settlementDetail {
 
 	settlement := []settlementDetail{}
 
@@ -34,9 +46,10 @@ func processSettlementFromHTML(outerHTML string) []settlementDetail {
 		amount := splittedData[len(splittedData)-1]
 		// Construct a settlement
 		settlement = append(settlement, settlementDetail{
+			Date:        parseDate(date),
+			Type:        bookKeep,
 			Description: description,
 			Amount:      amount,
-			CreatedAt:   time.Now().Format("2006-01-02"),
 		})
 	}
 
@@ -55,16 +68,19 @@ func (klikBca klikBca) GetTodaySettlement() ([]settlementDetail, error) {
 			return
 		}
 
+		date := e.DOM.Find("td:first-child").Text()
+		bookKeep := e.DOM.Find("td:last-child").Text()
+
 		// Need to retain the HTML codes, because the data is separated by <br>s which we can extract easily.
 		// If we only extract by Text(), we cannot extract the data
-		outerHTML, outerHTLMParseErr := goquery.OuterHtml(e.DOM)
+		outerHTML, outerHTLMParseErr := goquery.OuterHtml(e.DOM.Find("td:not([valign])"))
 		if err != nil {
 			err = outerHTLMParseErr
 			return
 		}
 
 		// Start processing data
-		settlement = append(settlement, processSettlementFromHTML(outerHTML)...)
+		settlement = append(settlement, processSettlement(date, bookKeep, outerHTML)...)
 	})
 
 	// Login
@@ -146,7 +162,7 @@ func (klikBca klikBca) GetTodaySettlement() ([]settlementDetail, error) {
 		return nil, err
 	}
 
-	klikBca.colly.Visit("https://m.klikbca.com/authentication.do")
+	klikBca.colly.Visit("https://m.ibank.klikbca.com/authentication.do")
 
 	return settlement, err
 }
